@@ -1,18 +1,19 @@
 package com.filtness.activityservice.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.LocalDateTime;
 import java.util.Map;
 
-@Entity
-@Table(name = "Activities")
+@Document(collection = "activities")
 @Data
 @Builder
 @AllArgsConstructor
@@ -25,7 +26,13 @@ public class Activity {
     private Integer duration;
     private Integer caloriesBurned;
     private LocalDateTime startedTime;
+
+    @Field("metrics")
     private Map<String, Object> additionalMatrics;
+
+    @CreatedDate
     private LocalDateTime createdAt;
+
+    @LastModifiedDate
     private LocalDateTime updatedAt;
 }
