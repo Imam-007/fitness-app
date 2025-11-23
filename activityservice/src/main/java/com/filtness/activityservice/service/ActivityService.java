@@ -5,6 +5,9 @@ import com.filtness.activityservice.dto.ActivityResponse;
 import com.filtness.activityservice.model.Activity;
 import com.filtness.activityservice.repository.ActivityRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,10 +15,19 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ActivityService {
     
     private final ActivityRepository activityRepository;
     private final UserValidationService userValidationService;
+    private final RabbitTemplate rabbitTemplate;
+
+    @Value("${rabbitmq.exchange.name}")
+    private String exchange;
+
+    @Value("${rabbitmq.routing.key}")
+    private String routing;
+
 
     public ActivityResponse trackActivity(ActivityRequest request) {
 
@@ -35,6 +47,14 @@ public class ActivityService {
                 .build();
 
         Activity savedActivity = activityRepository.save(activity);
+
+        //Public to RabbitMQ for AI Processing
+        try {
+            rabbitTemplate.convertAndSend(exchange, routing, savedActivity);
+        } catch (Exception e) {
+            log.error("Error occurred while sending activity to RabbitMQ", e);
+        }
+
         return mapToResponse(savedActivity);
     }
 
